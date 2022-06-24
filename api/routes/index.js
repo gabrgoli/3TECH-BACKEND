@@ -6,6 +6,7 @@ import product from "./products.js";
 import category from "./categories.js";
 import order from './orders.js';
 import cart from './carts.js';
+import question from './questions.js';
 import product_question from './product_questions.js';
 
 
@@ -19,8 +20,7 @@ router.use("/products", product) //CRUD - User y Admin
 router.use("/products", product_question) //CRUD - User y Admin
 router.use("/categories",category) // CRUD - Admin
 
-// router.use("/products-cart", productCart) // CRUD - User y Admin
-// router.use("/questions", question) 
+router.use("/questions", question) 
 
 router.use("/cart", cart) // CRUD - User y Admin
 router.use("/orders", order) 

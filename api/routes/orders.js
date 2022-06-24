@@ -8,47 +8,57 @@ const router = Router()
 
  //import * as IPaypal from '../paypalInterface'
 
+//Devuelve todas las ordenes, pero si se le pasa algo por query realiza una busqueda por usuario o producto en una orden
 router.get("/", verifyToken, async (req, res, next) => {
     
-    const {name} = req.query //esto es por si quiero traer todos los productos de una orden
+    const {name} = req.query //Para realizar la Busqueda de ordenes por poducto, usuario o mail
     if(name){
         try {
             const actualUser = await User.findById(req.userId);
+            //traigo todas las ordenes
             const allOrders = await Order.find().populate(['products', 'user']);
+            //si es un usuario, solo tragio las ordenes del mismo
             if(actualUser.role.includes('user')){ allOrders = allOrders.filter(order => order?.user?._id.toString() === req?.userId.toString());}
+            //creo 2 arrays vgacios
             let orderWithProduct=[]
             let orderWithUser=[]
+            let arrayOrders=[]
 
-             allOrders.forEach((order)=>((
-                 order.products.forEach((product)=>{
-                    if(product.name.includes(name))orderWithProduct.push(order)
+            const removeAccents = (str) => {
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              } 
+           
+
+            allOrders.forEach((order)=>((
+                 order?.products?.forEach((product)=>{
+                    if(removeAccents(product?.name?.toLowerCase()).includes(removeAccents(name.toLowerCase())))orderWithProduct.push(order)
                  })
              )));
             
             if(actualUser.role.includes('user'))return res.json(orderWithProduct)
             
             allOrders.forEach((order)=>{
-                if(order.user.name.includes(name))orderWithUser.push(order)
+                if(order?.user?.email.toLowerCase().includes(name.toLowerCase()))orderWithUser.push(order)
             });
+
+            allOrders.forEach((order)=>{
+                if(order?.user?.name?.toLowerCase().includes(name.toLowerCase()))orderWithUser.push(order)
+            });
+
+            arrayOrders=orderWithProduct.concat(orderWithUser)
+
+            let arrayOrdersNoRepeatLines = arrayOrders.filter((order,index)=>{
+                return arrayOrders.indexOf(order) === index;
+            })
             
-            return res.json(orderWithProduct.concat(orderWithUser))
-            //const allOrders = await Order.find().populate(['user']);
-
-
-            // const orderWithProduct = await Order.products.find({ name: {$regex: req.query.name, $options:'i'}}).populate(["category"])
-            // const orderWithUser = await Order.users.find({ name: {$regex: req.query.name, $options:'i'}}).populate(["category"])
-
-            // if(orderWithProduct.length === 0 &&  orderWithUser.length=== 0) {return res.send("product not found")} 
-            // if(orderWithProduct.length > 0 &&  orderWithUser.length === 0) {return res.json(orderWithProduct)}
-            // if(orderWithProduct.length === 0 &&  orderWithUser.length > 0) {return res.json(orderWithUser)}
-            // if(orderWithProduct.length > 0 &&  orderWithUser.length > 0) {return res.json(orderWithUser.concat(orderWithProduct))}
+            return res.json(arrayOrdersNoRepeatLines)
 
         } catch (error) {
             next(error)
         }
 
     }else{
-
+//Si no se evnia nada por query, entonces devuelve todas las ordenes, y a un usuario todas sus ordenes
     try {
 
         const actualUser = await User.findById(req.userId);
@@ -68,7 +78,7 @@ router.get("/", verifyToken, async (req, res, next) => {
 )
 ;
 
-
+//Devuelve una orden en particular a traves de su id de orden
 router.get("/:id",verifyToken,  async(req, res, next) => {
     const { id } = req.params
     try {
@@ -82,8 +92,8 @@ router.get("/:id",verifyToken,  async(req, res, next) => {
 
 
 
-
-router.post('/', verifyToken, async (req, res, next) => { //crear orden
+ //crear orden
+router.post('/', verifyToken, async (req, res, next) => {
     try {
 
     const newOrder = new Order(req.body); //adress, paymentId, totalPrice, products : [{},{}]
@@ -104,7 +114,7 @@ router.post('/', verifyToken, async (req, res, next) => { //crear orden
     }
 });
 
-
+ //Edita una orden
 router.put('/:id', verifyToken, async (req, res, next) => {
 
     try {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "axios": "^0.27.2",

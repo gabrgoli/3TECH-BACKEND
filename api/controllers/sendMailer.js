@@ -1,4 +1,4 @@
-import mailer from './nodemailerConfig.js'
+import mailer from '../controllers/nodemailerConfig.js'
 import Token from '../models/Token.js';
 import crypto from "crypto"
 

@@ -36,7 +36,7 @@ router.get("/", async (req, res,next) => {
     if(name){
         //http://localhost:3000/products?name=buzo
         try {
-            const productName = await Product.find({ name: {$regex: req.query.name, $options:'i'}}).populate(["category"])
+            const productName = await Product.find({ name: {$regex: req.query.name, $options:'i'}}).populate(["category","questions"])
             return productName.length === 0 ? res.send("product not found") : res.json(productName)
             } catch (error) {
             next(error)
@@ -68,7 +68,7 @@ router.get("/", async (req, res,next) => {
         
         try {
             //http://localhost:3000/products
-            const allProduct = await Product.find({}).populate(["category"]);
+            const allProduct = await Product.find({}).populate(["category","questions"]);
             return res.json(allProduct)
         } catch (error) {
             next(error)
