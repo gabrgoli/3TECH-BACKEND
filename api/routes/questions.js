@@ -7,6 +7,7 @@ import Product_Reply from "../models/Product_Reply.js";
 
 const router = Router();
 
+// DEVUELVE TODAS LAS PREGUNTAS QUE HAY EN LA BDD, SI EL ROLE ES DE USER, SOLO LAS PREGUNTAS DE ESE USER
 router.get("/", verifyToken, async (req, res, next) => {
 
     try {

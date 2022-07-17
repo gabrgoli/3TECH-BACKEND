@@ -17,90 +17,7 @@ router.post('/signup', signUp);
 router.post('/login', logIn);
 
 
-router.post('/review',verifyToken, async (req, res,next) => { //modificado por Gabi 09/6
-    //  try {
-        //console.log('body',req.body)
-        const{productId,review,comment,orderId,showProduct,showUser}=req.body //recibo del body datos, product es productId
-        const newReview = new Review({review:review,comment:comment,product:productId, order:orderId, showProduct:showProduct, showUser:showUser})
-        newReview.user=req.userId //req.userId se guarda en el verify token, viene por token
-        //newProduct.setCreationDate();  
-        await newReview.save()
-        
-
-
-
-
-        const totalReviews=await Review.find({product:productId}) //trae reviews de un producto
-        let total=0
-        totalReviews.forEach(e=>total=total+e.review) //e.review es la calificacion de una orden, e es cada orden
-        let divisor=totalReviews.length<1?1:totalReviews.length //e.review es la calificacion de una orden, e es cada orden
-        await Product.findByIdAndUpdate(productId,{rating:(total/divisor).toFixed(1)},{upsert: true, new : true}) //hace el promedio del producto de la BDD
-        const thisOrder=await Order.findById(orderId) //traigo la orden de la BDD que tiene  el id Orden que traje en body
-        const thisOrderProducts=thisOrder?.products?.map(product=>{ //busco el producto que estoy calificando y le pongo has review true
-            if(product._id===productId) return ({...product,hasReview:review})
-            else return product // devuelve los productos que no estoy calificando de la orden
-        })
-        thisOrder.products=thisOrderProducts; //reemplazo el array de poductos por este map que tiene lo mismo, solo que hasReview esta cambiada
-        thisOrder.save();
-        await newReview.save(); //se guarda el review
-        res.json("se guardo la calificacion");
-        
-    // } catch (err) {
-    //     next(err)
-    // }
-});
-
-router.put('/review/:reviewId', verifyToken, async (req, res, next) => { //modifica la calificacion
-    try {
-        const{productId,review,comment,orderId}=req.body
-        const { reviewId } = req.params;
-        await Review.findByIdAndUpdate({ _id: reviewId }, req.body);
-        const totalReviews=await Review.find({product:productId}) //trae reviews de un producto
-        console.log('array',totalReviews)
-        let total=0
-        totalReviews.forEach(e=>total=total+e.review) //e.review es la calificacion de una orden, e es cada orden
-        let divisor=totalReviews.length<1?1:totalReviews.length //e.review es la calificacion de una orden, e es cada orden
-        await Product.findByIdAndUpdate(productId,{rating:(total/divisor).toFixed(1)},{upsert: true, new : true}) //hace el promedio del producto de la BDD
-       //hay que cambiar el valor hasreview al producto de la orden
-        const thisOrder=await Order.findById(orderId) //traigo la orden de la BDD que tiene  el id Orden que traje en body,
-        const thisOrderProducts=thisOrder?.products?.map(product=>{ //busco el producto que estoy calificando y le pongo has review true
-            if(product._id===productId) return ({...product,hasReview:review})
-            else return product // devuelve los productos que no estoy calificando de la orden
-        })
-        thisOrder.products=thisOrderProducts //reemplazo el array de poductos por thisOrderProducts  que tiene lo mismo, solo que hasReview esta cambiada
-        thisOrder.save()
-        res.json("se actualizo la calificacion")
-    } catch (err) {
-        next(err)
-    }
-
-});
-
-router.get("/review", verifyToken, async (req, res, next) => {
-    
-    
-    try {
-
-        const actualUser = await User.findById(req.userId);
-        //console.log("user",actualUser)
-        const allReviews = await Review.find().populate(['product', 'user', 'order']);
-        //console.log(allReviews) 
-        if(actualUser.role.includes('admin')){
-            return res.send(allReviews)
-        } else {
-            const userReviews = allReviews.filter(review => review?.user?._id.toString() === req?.userId.toString());
-            return res.send(userReviews)
-        }
-
-    } catch (error) {
-        next(error)
-    }
-}
-//}
-)
-;
-
-
+//DEVUELVE TODOS LOS USUARIOS O BUSCAR USUARIO POR NOMBRE 
 router.get("/", [verifyToken, isAdmin], async (req, res, next) => {
    
     const {name} = req.query
@@ -127,7 +44,7 @@ router.get("/", [verifyToken, isAdmin], async (req, res, next) => {
 });
 
 
-
+// BUSCAR USUARIO POR ID
 router.get("/:id", async (req,res,next) => {
     const { id } = req.params;
     try {
@@ -139,7 +56,7 @@ router.get("/:id", async (req,res,next) => {
 
 });
 
-
+// BORRAR USUARIO POR ID
 router.delete('/:id', [verifyToken, isAdmin], async (req, res, next) => {
 
     // el ban se logra quitando acceso temporal a la cuenta, habría que hacer una copia en otro esquema inaccesible, cosa de guardar los datos
@@ -155,6 +72,7 @@ router.delete('/:id', [verifyToken, isAdmin], async (req, res, next) => {
     }
 });
 
+//  MODIFICA LOS DATOS DEL USUARIO  
 router.put('/:id', verifyToken, async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -166,8 +84,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
             const updatedUser = await User.findById({ _id: id })
             return res.send(updatedUser)
         }
-            await User.findByIdAndUpdate({ _id: id }, req.body);
-            // le paso todo el body, el método compara y cambia todo automáticamente
+            await User.findByIdAndUpdate({ _id: id }, req.body);// le paso todo el body, el método compara y cambia todo automáticamente     
             const updatedUser = await User.findById({ _id: id })
             req.userId===id?res.send(updatedUser):res.send('ok')
             
@@ -177,6 +94,94 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 
 });
 
+
+
+
+// CREAR UNA CALIFICACION
+router.post('/review',verifyToken, async (req, res,next) => { //modificado por Gabi 09/6
+    //  try {
+        //console.log('body',req.body)
+        const{productId,review,comment,orderId,showProduct,showUser}=req.body //recibo del body datos, product es productId
+        const newReview = new Review({review:review,comment:comment,product:productId, order:orderId, showProduct:showProduct, showUser:showUser})
+        newReview.user=req.userId //req.userId se guarda en el verify token, viene por Header
+        //newProduct.setCreationDate();  
+        await newReview.save()
+        
+        const totalReviews=await Review.find({product:productId}) //trae reviews de un producto
+        let total=0
+        totalReviews.forEach(e=>total=total+e.review) //e.review es la calificacion de una orden, e es cada orden
+        let divisor=totalReviews.length<1?1:totalReviews.length //
+        await Product.findByIdAndUpdate(productId,{rating:(total/divisor).toFixed(1)},{upsert: true, new : true}) //hace el promedio del producto de la BDD
+        const thisOrder=await Order.findById(orderId) //traigo la orden de la BDD que tiene  el id Orden que traje en body
+        const thisOrderProducts=thisOrder?.products?.map(product=>{ //busco el producto que estoy calificando y le pongo has review true
+            if(product._id===productId) return ({...product,hasReview:review})
+            else return product // devuelve los productos que no estoy calificando de la orden
+        })
+        thisOrder.products=thisOrderProducts; //reemplazo el array de poductos por este map que tiene lo mismo, solo que hasReview esta cambiada
+        thisOrder.save();
+        await newReview.save(); //se guarda el review
+        res.json("se guardo la calificacion");
+        
+    // } catch (err) {
+    //     next(err)
+    // }
+});
+
+// MODIFICA LA CALIFICACION
+router.put('/review/:reviewId', verifyToken, async (req, res, next) => { 
+    try {
+        const{productId,review,comment,orderId}=req.body
+        const { reviewId } = req.params;
+        await Review.findByIdAndUpdate({ _id: reviewId }, req.body);
+        const totalReviews=await Review.find({product:productId}) //trae reviews de un producto
+        console.log('array',totalReviews)
+        let total=0
+        totalReviews.forEach(e=>total=total+e.review) //e.review es la calificacion de una orden, e es cada orden
+        let divisor=totalReviews.length<1?1:totalReviews.length //e.review es la calificacion de una orden, e es cada orden
+        await Product.findByIdAndUpdate(productId,{rating:(total/divisor).toFixed(1)},{upsert: true, new : true}) //hace el promedio del producto de la BDD
+       //hay que cambiar el valor hasreview al producto de la orden
+        const thisOrder=await Order.findById(orderId) //traigo la orden de la BDD que tiene  el id Orden que traje en body,
+        const thisOrderProducts=thisOrder?.products?.map(product=>{ //busco el producto que estoy calificando y le pongo has review true
+            if(product._id===productId) return ({...product,hasReview:review})
+            else return product // devuelve los productos que no estoy calificando de la orden
+        })
+        thisOrder.products=thisOrderProducts //reemplazo el array de poductos por thisOrderProducts  que tiene lo mismo, solo que hasReview esta cambiada
+        thisOrder.save()
+        res.json("se actualizo la calificacion")
+    } catch (err) {
+        next(err)
+    }
+
+});
+
+
+// TRAE TODAS LAS CALIFICACIONES, si sos usuario, solo las del usuario
+router.get("/review", verifyToken, async (req, res, next) => {
+    
+    
+    try {
+
+        const actualUser = await User.findById(req.userId);
+        //console.log("user",actualUser)
+        const allReviews = await Review.find().populate(['product', 'user', 'order']);
+        //console.log(allReviews) 
+        if(actualUser.role.includes('admin')){
+            return res.send(allReviews)
+        } else {
+            const userReviews = allReviews.filter(review => review?.user?._id.toString() === req?.userId.toString());
+            return res.send(userReviews)
+        }
+
+    } catch (error) {
+        next(error)
+    }
+}
+//}
+)
+;
+
+
+// TRAE TODOS LOS PRODUCTOS DE LA WISHLIST
 router.get("/wishlist/:id", verifyToken, async (req, res, next) => {
     try {
         const UserById=await User.findById(req.userId).populate('wishList')
@@ -187,6 +192,8 @@ router.get("/wishlist/:id", verifyToken, async (req, res, next) => {
     }
 });
 
+
+// CREA UNA WISHLIST
 router.post('/wishlist', verifyToken, async (req, res, next) => {
     try {
         const {productId}=req.body
@@ -202,6 +209,8 @@ router.post('/wishlist', verifyToken, async (req, res, next) => {
     }
 });
 
+
+//ELIMINA PRODUCTO DE LA WISHLIST, CON EL ID
 router.put('/wishlist/:id', verifyToken, async (req, res, next) => {
         
     try {

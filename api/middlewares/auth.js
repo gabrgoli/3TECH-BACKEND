@@ -17,7 +17,7 @@ export const signUp = async (req, res, next) => {
             res.send('There is an account already created with this email')
         } else {
 
-            const newUser = new User({name, lastName, email, password: await encrypter.encryptPassword(password) });
+            const newUser = new User({name, lastName, email, password: await encrypter.encryptPassword(password)});
 
             newUser.setCreationDate();
 
@@ -75,7 +75,7 @@ export const logIn = async (req, res) => {
          // if(found.suspendedAccount) return res.status(401).json({ message: 'Your account it´s temporary suspended.' })
          //if(!found.verifiedAccount) return res.status(401).json({message : 'You need to verify your account first.'})
          
-         const token = jwt.sign({ id: found._id },  process.env.JWT_SECRET, { expiresIn: 86400 })
+         const token = jwt.sign({ id: found?._id },  process.env.JWT_SECRET, { expiresIn: 86400 })
          return res.json({ user : found, token });
     }
 }

@@ -15,38 +15,44 @@ router.get("/", verifyToken, async (req, res, next) => {
     if(name){
         try {
             const actualUser = await User.findById(req.userId);
-            //traigo todas las ordenes
+            //TRAE TODAS LAS ORDENES
             const allOrders = await Order.find().populate(['products', 'user']);
-            //si es un usuario, solo tragio las ordenes del mismo
+            //SI ES USUARIO SOLO TRAE LASS ORDENES DEL MISMO, O SEA, NO ES ADMIN
             if(actualUser.role.includes('user')){ allOrders = allOrders.filter(order => order?.user?._id.toString() === req?.userId.toString());}
-            //creo 2 arrays vgacios
+            
             let orderWithProduct=[]
             let orderWithUser=[]
             let arrayOrders=[]
 
+            // FUNCION QUE ELIMINA LOS ACENTOS
             const removeAccents = (str) => {
                 return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
               } 
            
-
+            //SI EL TEXTO QUE VIENE EN PARAMETRO NAME, LO CONTIENE EL NOMBRE DEL PRODUCTO, ENTONCES GUARDO EN EL ARRAY  orderWithProduct, LA ORDEN
             allOrders.forEach((order)=>((
                  order?.products?.forEach((product)=>{
                     if(removeAccents(product?.name?.toLowerCase()).includes(removeAccents(name.toLowerCase())))orderWithProduct.push(order)
                  })
              )));
             
+             // SI ES UN USUARIO DEVUELVE EL ARRAY DE PRODUCTOS, QUE TENDRA LOS PRODUCTOS CON LA BUSQUEDA QUE HAYA REALIZADO
             if(actualUser.role.includes('user'))return res.json(orderWithProduct)
             
+            //SI EL TEXTO QUE VIENE EN PARAMETRO NAME, LO CONTIENE EL MAIL DEL USUARIO, ENTONCES GUARDO EN EL ARRAY  orderWithUser LA  ORDEN
             allOrders.forEach((order)=>{
                 if(order?.user?.email.toLowerCase().includes(name.toLowerCase()))orderWithUser.push(order)
             });
 
+            //SI EL TEXTO QUE VIENE EN PARAMETRO NAME, LO CONTIENE EL NOMBRE DEL USUARIO, ENTONCES GUARDO EN EL ARRAY  orderWithUser LA  ORDEN
             allOrders.forEach((order)=>{
                 if(order?.user?.name?.toLowerCase().includes(name.toLowerCase()))orderWithUser.push(order)
             });
 
+            // SE UNIFICA EN UN SOLO ARRAY TODAS LAS ORDENES QUE INCLUYAN LO QUE SE BUSCA, VINIENDO POR PARAMETRO EN NAME
             arrayOrders=orderWithProduct.concat(orderWithUser)
 
+            // FUNCION QUE QUITA LOS ELEMENTOS REPETIDOS DE UNA ARRAY
             let arrayOrdersNoRepeatLines = arrayOrders.filter((order,index)=>{
                 return arrayOrders.indexOf(order) === index;
             })
@@ -128,6 +134,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 
 });
 
+//Eliminar una orden
 router.delete('/:id', [verifyToken, isAdmin], async (req, res, next) => {
 
     try {
@@ -140,7 +147,6 @@ router.delete('/:id', [verifyToken, isAdmin], async (req, res, next) => {
 });
 
 // `Order : ${found._id} successfully deleted
-
 
 router.post('/pay',verifyToken, async(req, res) => {
 
@@ -209,32 +215,32 @@ router.post('/pay',verifyToken, async(req, res) => {
     }
     
 
-    if ( dbOrder.totalPrice !== Number(data.purchase_units[0].amount.value) ) {
+   /* if ( dbOrder.totalPrice !== Number(data.purchase_units[0].amount.value) ) {
         //await db.disconnect();
         return res.status(200).json({ message: 'Los montos de PayPal y nuestra orden no son iguales' });
-    }
+    }*/
 
-    dbOrder.products.forEach(async (product,i)=>{
+    dbOrder?.products?.forEach(async (product,i)=>{
         const thisProduct=await Product.findById(product._id)
         if(thisProduct.stock<product.quantity){ 
             return res.status(200).json({ message: `No hay stock suficiente de ${product.name.length>25?product.name.slice(0,25)+'...':product.name}` });
         }
         else{
             await Product.findByIdAndUpdate(product._id,{stock:(thisProduct.stock-product.quantity)})
-            if(!product[i+1]){
+            
+           //if(!product[i+1]){
                 dbOrder.paymentId = transactionId;
-                dbOrder.products.forEach(async(product)=>{
+                //dbOrder.products.forEach(async(product)=>{
                     await Product.findByIdAndUpdate(product._id, {amountOfSales: thisProduct.amountOfSales+product.quantity });
-                })         
-                dbOrder.isPaid = true;
-                await dbOrder.save();
-                // await db.disconnect();
-
-                
-                return res.status(200).json({ message: "Orden pagada con éxito" });
-            }
+               // })         
+           // }
         }
     })
+
+    dbOrder.isPaid = true;
+    await dbOrder.save();
+    // await db.disconnect();
+    return res.status(200).json({ message: "Orden pagada con éxito" });
 
     
 })

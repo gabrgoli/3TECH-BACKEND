@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 
 mongoose.Promise= global.Promise;
 mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}`,
+//mongoose.connect(`mongodb+srv://gabrgoli:JM4LHhJTtdWDMg87@mundomarket.tfizn.mongodb.net/test`,
 { useNewUrlParser: true, useUnifiedTopology: true })
 .then(async () => {console.log(`Connected to DB : ${process.env.DB_USER}/${process.env.DB_NAME}`)
 app.listen(process.env.PORT, () => {
