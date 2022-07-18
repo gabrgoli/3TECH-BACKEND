@@ -37,7 +37,7 @@ router.get("/", async (req, res,next) => {
         //http://localhost:3000/products?name=buzo
         try {
             const productName = await Product.find({ name: {$regex: req.query.name, $options:'i'}}).populate(["category","questions"])
-            return productName.length === 0 ? res.send("product not found") : res.json(productName)
+            return productName.length === 0 ? res.send([]) : res.json(productName)
             } catch (error) {
             next(error)
         }

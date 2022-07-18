@@ -10,7 +10,6 @@ const router = Router();
 
 
 // obtengo todas las preguntas y respuestas sobre un producto
-
 router.get('/:productId/questions', async (req, res, next) => {
 
     try {
@@ -24,7 +23,6 @@ router.get('/:productId/questions', async (req, res, next) => {
 
 
 //obtengo una pregunta en particular
-
 router.get('/:productId/questions/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -38,8 +36,7 @@ router.get('/:productId/questions/:id', async (req, res, next) => {
 
 
 
-// subir una PREGUNTAS del user al admin
-
+// subir una pregunta del user al admin
 router.post('/:productId/questions', verifyToken, async(req, res, next)=> {
     try{
         

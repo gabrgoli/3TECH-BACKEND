@@ -21,10 +21,12 @@ router.post('/login', logIn);
 router.get("/", [verifyToken, isAdmin], async (req, res, next) => {
    
     const {name} = req.query
+    
     if(name){
         try {
-            const userName = await User.find({ name: {$regex: req.query.name, $options:'i'}}).populate(['cart','wishList','orders'])
-            return userName.length === 0 ? res.send("user not found") : res.json(userName)
+            //const userName = await User.find({ name: {$regex: name, $options:'i'}}).populate(['wishList','orders'])
+            const userName = await User.findById(req.userId);
+            return userName.length === 0 ? res.send([]) : res.json(userName)
             } catch (error) {
             next(error)
         }

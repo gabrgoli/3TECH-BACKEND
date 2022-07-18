@@ -4,6 +4,7 @@ import {verifyToken, isAdmin} from '../middlewares/authJwt.js';
 
 const router = Router();
 
+// CREAR UNA NUEVA CATEGORIA
 router.post('/', [verifyToken, isAdmin], async(req,res,next)=>{
     const { categoryText } = req.body;
 
@@ -17,7 +18,7 @@ router.post('/', [verifyToken, isAdmin], async(req,res,next)=>{
 }); 
 
 
-
+// DEVUELVE TODAS LAS CATEGORIAS
 router.get("/", async (req, res, next) => {
     try {
         const categories = await Category.find()

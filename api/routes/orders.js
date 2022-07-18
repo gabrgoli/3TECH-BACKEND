@@ -220,23 +220,26 @@ router.post('/pay',verifyToken, async(req, res) => {
         return res.status(200).json({ message: 'Los montos de PayPal y nuestra orden no son iguales' });
     }*/
 
+    //////// VERIFICA QUE HAY STOCK /////////////
     dbOrder?.products?.forEach(async (product,i)=>{
         const thisProduct=await Product.findById(product._id)
         if(thisProduct.stock<product.quantity){ 
             return res.status(200).json({ message: `No hay stock suficiente de ${product.name.length>25?product.name.slice(0,25)+'...':product.name}` });
         }
         else{
+            //////// SI HAY STOCK, PARA QUE PRODUCTO DE LA ORDEN SE REALIZA LO SIGUIENTE /////////////
             await Product.findByIdAndUpdate(product._id,{stock:(thisProduct.stock-product.quantity)})
-            
            //if(!product[i+1]){
-                dbOrder.paymentId = transactionId;
+            dbOrder.paymentId = transactionId;
                 //dbOrder.products.forEach(async(product)=>{
-                    await Product.findByIdAndUpdate(product._id, {amountOfSales: thisProduct.amountOfSales+product.quantity });
+            //////// AUMENTO LA CANTIDAD DE VENTAS QUE TUVO ESE PRODUCTO /////////////
+            await Product.findByIdAndUpdate(product._id, {amountOfSales: thisProduct.amountOfSales+product.quantity });
                // })         
            // }
         }
     })
 
+    //////// SI PASA POR TODAS LA VERIFICACIONES SE REALIZA LA COMPRA/////////////
     dbOrder.isPaid = true;
     await dbOrder.save();
     // await db.disconnect();
