@@ -24,8 +24,8 @@ router.get("/", [verifyToken, isAdmin], async (req, res, next) => {
     
     if(name){
         try {
-            //const userName = await User.find({ name: {$regex: name, $options:'i'}}).populate(['wishList','orders'])
-            const userName = await User.findById(req.userId);
+            const userName = await User.find({ name: {$regex: name, $options:'i'}}).populate(['wishList','orders'])
+            //const userName = await User.find({name: name});
             return userName.length === 0 ? res.send([]) : res.json(userName)
             } catch (error) {
             next(error)
@@ -88,7 +88,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
         }
             await User.findByIdAndUpdate({ _id: id }, req.body);// le paso todo el body, el método compara y cambia todo automáticamente     
             const updatedUser = await User.findById({ _id: id })
-            req.userId===id?res.send(updatedUser):res.send('ok')
+            req.userId===id?res.send(updatedUser):res.send('ok')//esto sino se hace, si modifico otro usuario, se logea al usuario modificado
             
     } catch (err) {
         next(err)

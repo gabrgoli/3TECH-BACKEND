@@ -109,7 +109,6 @@ userSchema.methods.setCreationDate = function () {
 };
 
 
-
 const User = model("User", userSchema)
 
 export default User;

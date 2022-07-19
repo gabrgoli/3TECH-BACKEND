@@ -18,7 +18,9 @@ export const verifyToken = async (req, res, next) => {
         else{
         const decoded = jwt.verify(token,  'secret')
         req.userId =  decoded.id
-        const user = await User.findById(req.userId, { passsword: 0 })
+        //console.log("req.userId:",req.userId)
+        const user = await User.findById(req.userId)
+        //console.log("user:",user)
         if (!user) return res.status(404).json({ message: 'User Not Found' })
         next();
 
@@ -35,5 +37,6 @@ export const isAdmin = async (req, res, next) => {
     if(token==='123456789') {return next();}
 
     const user = await User.findById(req.userId);
-    user.role.toLowerCase().includes('admin') ? next() : res.status(403).json({message : 'Unauthorized action'})
+     console.log("user:",user)
+    user.role.toLowerCase().includes('admin') ? next() : res.status(404).json({message : 'you are not admin user'})
 }
