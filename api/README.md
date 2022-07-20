@@ -2,7 +2,7 @@
 3TECH es una aplicación de e-commerce de productos de tecnología.<br/>
 Puede ser utilizada por cualquier comercio que quiera vender sus productos en internet.<br/>
 Utiliza Base de Datos MongoDB<br/>
-Backend: NodeJS, Express, JavaScrit<br/>
+Backend: NodeJS, Express, JavaScrits<br/>
 Frontend: React.JS<br/>
 
 Funcionalidades:<br/>
