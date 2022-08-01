@@ -160,7 +160,6 @@ router.put('/review/:reviewId', verifyToken, async (req, res, next) => {
 // TRAE TODAS LAS CALIFICACIONES, si sos usuario, solo las del usuario
 router.get("/review", verifyToken, async (req, res, next) => {
     
-    
     try {
 
         const actualUser = await User.findById(req.userId);
@@ -195,7 +194,7 @@ router.get("/wishlist/:id", verifyToken, async (req, res, next) => {
 });
 
 
-// CREA UNA WISHLIST
+// AGREGA UN PRODUCTO A LA WISHLIST
 router.post('/wishlist', verifyToken, async (req, res, next) => {
     try {
         const {productId}=req.body

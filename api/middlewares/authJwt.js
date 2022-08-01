@@ -10,7 +10,7 @@ export const verifyToken = async (req, res, next) => {
         if (!token) {return res.status(403).json({ message: 'No token provided' })}
         //  CREO UN TOKEN MAESTRO PARA PODER HACER LA DOCUMENTACION EN POSTMAN
         else if(token==='123456789'){
-            req.userId = '629521f73a2bff0012f073fb' //le paso ggoliher@yahoo.com admin
+            req.userId = '629521f73a2bff0012f073fb' //le paso ggoliger@yahoo.com admin
             const user = await User.findById(req.userId, { passsword: 0 })
             if (!user) return res.status(404).json({ message: 'User Not Found' })
             return next();
