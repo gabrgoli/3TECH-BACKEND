@@ -1,3 +1,4 @@
+ <img src="./foto.png" width="800" title="hover text">
 # Introduccion
 3TECH es una aplicación de e-commerce de productos de tecnología.<br/>
 Puede ser utilizada por cualquier comercio que quiera vender sus productos en internet.<br/>
